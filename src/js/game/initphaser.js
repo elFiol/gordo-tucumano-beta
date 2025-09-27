@@ -6,7 +6,13 @@ export function initPhaser(containerId) {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
-    parent: containerId,  // Se engancha a un div de React
+    parent: containerId,physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 300 },
+      debug: false
+    }
+  },
     scene: [GameScene]
   });
 }
