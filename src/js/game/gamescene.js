@@ -9,21 +9,22 @@ export default class GameScene extends Phaser.Scene {
     // Fondo
     this.load.image("fondo", "assets/backgroundbattle.jpeg");
 
-    // Sprite de idle
+    // Sprites del jugador
     this.load.spritesheet("jugador", "assets/sprites/jugador/idle_strip1.png", {
       frameWidth: 144,
       frameHeight: 144
     });
-    // Sprite de correr
     this.load.spritesheet("jugadorRun", "assets/sprites/jugador/run_strip10.png", {
       frameWidth: 144,
       frameHeight: 144
     });
-    // sprite de saltar
     this.load.spritesheet("jugadorJump", "assets/sprites/jugador/wait_strip15.png", {
       frameWidth: 144,
       frameHeight: 144
     });
+
+    // Bala
+    this.load.image("bala", "assets/sprites/jugador/Boucing_tear.png");
   }
 
   create() {
@@ -32,25 +33,44 @@ export default class GameScene extends Phaser.Scene {
 
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.body.setGravityY(600)
+    this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
-    // Origen en la base del sprite (pies tocando el suelo)
-    this.player.setOrigin(0.5, 1);
 
     // Suelo invisible
     const suelo = this.physics.add.staticGroup();
     const piso = suelo.create(400, 580, null);
     piso.setSize(800, 40);
     piso.setVisible(false);
-
-    // Colisión jugador-suelo
     this.physics.add.collider(this.player, piso);
 
     // Controles
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.teclasAtaque = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D
+    });
 
-    // Animación de caminar
+    // Grupo de balas
+    this.balas = this.physics.add.group({
+      defaultKey: "bala",
+      maxSize: 10,
+      runChildUpdate: true
+    });
+
+    // Crear balas inactivas al inicio
+    for (let i = 0; i < 10; i++) {
+      const bala = this.balas.create(0, 0, "bala");
+      bala.setActive(false);
+      bala.setVisible(false);
+      bala.body.allowGravity = false;
+
+      bala.setScale(2);
+    }
+
+    // Animaciones
     this.anims.create({
       key: "walk",
       frames: this.anims.generateFrameNumbers("jugadorRun", { start: 0, end: 9 }),
@@ -58,16 +78,12 @@ export default class GameScene extends Phaser.Scene {
       repeat: -1
     });
 
-    // animacion de parado
-
     this.anims.create({
       key: "idle",
       frames: this.anims.generateFrameNumbers("jugador", { start: 0, end: 0 }),
       frameRate: 10,
       repeat: -1
     });
-
-    // animacion de saltar
 
     this.anims.create({
       key: "jump",
@@ -77,13 +93,46 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
-  update() {
-    if (!this.cursors) return;
-
-    const speed = 200;
-    if (!this.player.body.touching.down) {
-    this.player.anims.play("jump", true);
+  disparar(x, y, velX, velY) {
+    const bala = this.balas.get(x, y);
+    if (bala) {
+      bala.setActive(true);
+      bala.setVisible(true);
+      this.physics.world.enable(bala);
+      bala.body.allowGravity = false;
+      bala.setVelocity(velX, velY);
+    }
   }
+
+  update() {
+    const speed = 200;
+
+    // Destruir balas fuera de pantalla
+    this.balas.children.iterate((bala) => {
+      if (bala.x > 800 || bala.x < 0 || bala.y > 600 || bala.y < 0) {
+        bala.setActive(false);
+        bala.setVisible(false);
+      }
+    });
+
+    // Disparo con WASD
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.up)) {
+      this.disparar(this.player.x, this.player.y, 0, -500);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.down)) {
+      this.disparar(this.player.x, this.player.y, 0, 500);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.left)) {
+      this.disparar(this.player.x, this.player.y, -500, 0);
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.right)) {
+      this.disparar(this.player.x, this.player.y, 500, 0);
+    }
+
+    // Animación de salto
+    if (!this.player.body.touching.down) {
+      this.player.anims.play("jump", true);
+    }
     // Movimiento izquierda
     else if (this.cursors.left.isDown) {
       this.player.setVelocityX(-speed);
@@ -99,11 +148,10 @@ export default class GameScene extends Phaser.Scene {
     // Quieto
     else {
       this.player.setVelocityX(0);
-      this.player.anims.stop();
-      this.player.anims.play("idle",true); // frame idle
+      this.player.anims.play("idle", true);
     }
 
-    // Salto
+    // Salto rápido
     if (this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-500);
     }
