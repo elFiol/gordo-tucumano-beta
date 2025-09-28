@@ -9,7 +9,7 @@ export function initPhaser(containerId) {
     parent: containerId,physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 300 },
+      gravity: { y: 400 },
       debug: false
     }
   },
