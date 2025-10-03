@@ -8,7 +8,6 @@ export default class GameScene extends Phaser.Scene {
   preload() {
     // Fondo
     this.load.image("fondo", "assets/backgroundbattle.jpeg");
-
     // Sprites del jugador
     this.load.spritesheet("jugador", "assets/sprites/jugador/idle_strip1.png", {
       frameWidth: 144,
@@ -25,6 +24,11 @@ export default class GameScene extends Phaser.Scene {
 
     // Bala
     this.load.image("bala", "assets/sprites/jugador/Boucing_tear.png");
+    // corazon
+    this.load.image("corazon", "assets/sprites/jugador/heart-removebg-preview.png")
+    // sonidos
+    this.load.audio("hurt", "assets/soundtrack/jugador-hurt.mp3")
+    this.load.audio("dead", "assets/soundtrack/jugador-dead.mp3")
   }
 
   create() {
@@ -33,10 +37,27 @@ export default class GameScene extends Phaser.Scene {
 
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
+    this.player.stats = {
+      vida: 3,
+      fuerza: 350,
+      velocidad: 250
+    }
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
+    this.corazones = []
+    
+let xInicial = 20;
+let yInicial = 20;
+let separacion = 40; // separación entre corazones
 
+for (let i = 0; i < this.player.stats.vida; i++) {
+  const corazon = this.add.image(xInicial + i * separacion, yInicial, "corazon").setScrollFactor(0).setScale(0.1);
+  this.corazones.push(corazon);
+}
+
+    this.sonidoHurt = this.sound.add("hurt");
+    this.sonidoDead = this.sound.add("dead");
     // Suelo invisible
     const suelo = this.physics.add.staticGroup();
     const piso = suelo.create(400, 580, null);
@@ -45,6 +66,7 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.player, piso);
 
     // Controles
+    this.teclaHit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.cursors = this.input.keyboard.createCursorKeys();
     this.teclasAtaque = this.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -67,7 +89,7 @@ export default class GameScene extends Phaser.Scene {
       bala.setVisible(false);
       bala.body.allowGravity = false;
 
-      bala.setScale(2);
+      bala.setScale(2.2);
     }
 
     // Animaciones
@@ -103,10 +125,32 @@ export default class GameScene extends Phaser.Scene {
       bala.setVelocity(velX, velY);
     }
   }
-
+  esperarSonido(sonido) {
+  return new Promise(resolve => {
+    sonido.once('complete', resolve);
+    sonido.play();
+  });
+}
+  async perderVida() {
+  if (this.player.stats.vida > 0) {
+    this.player.stats.vida--;
+    const corazon = this.corazones[this.player.stats.vida];
+    if (corazon) {
+      corazon.setTint(0x808080);
+    }
+    await this.esperarSonido(this.sonidoHurt);
+    if (this.player.stats.vida <= 0) {
+      this.sonidoDead.play()
+      this.player.setActive(false).setVisible(false);
+    }
+  }
+}
   update() {
-    const speed = 200;
+    const speed = this.player.stats.velocidad;
 
+    if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) {
+  this.perderVida();
+}
     // Destruir balas fuera de pantalla
     this.balas.children.iterate((bala) => {
       if (bala.x > 800 || bala.x < 0 || bala.y > 600 || bala.y < 0) {
