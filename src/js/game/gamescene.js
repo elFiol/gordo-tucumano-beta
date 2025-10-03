@@ -21,7 +21,10 @@ export default class GameScene extends Phaser.Scene {
       frameWidth: 144,
       frameHeight: 144
     });
-
+    this.load.spritesheet("jugadorHurts", "assets/sprites/jugador/ledge_strip20.png" , {
+      frameWidth: 144,
+      frameHeight: 144
+    })
     // Bala
     this.load.image("bala", "assets/sprites/jugador/Boucing_tear.png");
     // corazon
@@ -94,6 +97,13 @@ for (let i = 0; i < this.player.stats.vida; i++) {
 
     // Animaciones
     this.anims.create({
+      key: "hurts",
+      frames: this.anims.generateFrameNumbers("jugadorHurts", { start: 0, end: 19 }),
+      frameRate: 35,
+      repeat: 0
+    });
+
+    this.anims.create({
       key: "walk",
       frames: this.anims.generateFrameNumbers("jugadorRun", { start: 0, end: 9 }),
       frameRate: 15,
@@ -132,22 +142,35 @@ for (let i = 0; i < this.player.stats.vida; i++) {
   });
 }
   async perderVida() {
-  if (this.player.stats.vida > 0) {
+  if (this.player.stats.vida > 0 && !this.player.estaHerido) {
+    this.player.estaHerido = true;
+
+    // Animación de daño
+    this.player.anims.play("hurts", true);
+
+    // Registrar el evento para desbloquear animaciones cuando termine
+    this.player.once('animationcomplete-hurts', () => {
+      this.player.estaHerido = false;
+    });
+
+    // Reducir vida y actualizar corazones
     this.player.stats.vida--;
     const corazon = this.corazones[this.player.stats.vida];
-    if (corazon) {
-      corazon.setTint(0x808080);
-    }
+    if (corazon) corazon.setTint(0x808080);
+
+    // Sonido hurt y esperar a que termine
     await this.esperarSonido(this.sonidoHurt);
+
+    // Si es la última vida
     if (this.player.stats.vida <= 0) {
-      this.sonidoDead.play()
+      this.sonidoDead.play();
       this.player.setActive(false).setVisible(false);
     }
   }
 }
+
   update() {
     const speed = this.player.stats.velocidad;
-
     if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) {
   this.perderVida();
 }
@@ -172,7 +195,7 @@ for (let i = 0; i < this.player.stats.vida; i++) {
     if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.right)) {
       this.disparar(this.player.x, this.player.y, 500, 0);
     }
-
+    if (!this.player.estaHerido){
     // Animación de salto
     if (!this.player.body.touching.down) {
       this.player.anims.play("jump", true);
@@ -193,7 +216,7 @@ for (let i = 0; i < this.player.stats.vida; i++) {
     else {
       this.player.setVelocityX(0);
       this.player.anims.play("idle", true);
-    }
+    }}
 
     // Salto rápido
     if (this.cursors.up.isDown && this.player.body.touching.down) {
