@@ -47,7 +47,7 @@ export default class GameScene extends Phaser.Scene {
     this.boss1.setCollideWorldBounds(true);
     this.boss1.stats = {
       vida: 500,
-      velocidad: 100,
+      velocidad: 300,
       activo: true,
       direccion: 1
 
@@ -56,6 +56,7 @@ export default class GameScene extends Phaser.Scene {
     this.boss1.setImmovable(true);
     this.boss1.setScale(1.2)
     this.boss1.setBounce(1, 0);
+    this.boss1.setOffset(0, 0)
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
     this.player.stats = {
@@ -66,6 +67,8 @@ export default class GameScene extends Phaser.Scene {
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
+    this.player.setOffset(0, 0)
+    this.player.body.setSize(8, 8);
     this.corazones = []
     
 let xInicial = 20;
@@ -99,7 +102,7 @@ for (let i = 0; i < this.player.stats.vida; i++) {
     // Grupo de balas
     this.balas = this.physics.add.group({
       defaultKey: "bala",
-      maxSize: 10,
+      maxSize: 30,
       runChildUpdate: true
     });
 
@@ -116,7 +119,9 @@ for (let i = 0; i < this.player.stats.vida; i++) {
   bala.setActive(false);
   bala.setVisible(false);
   bala.body.allowGravity = false;
-  bala.setScale(2.2);
+  bala.setScale(3);
+  bala.body.setSize(10, 10);
+  bala.body.setOffset(0, 0);
 }
     for (let i = 0; i < 10; i++) {
       const bala = this.balas.create(0, 0, "bala");
@@ -127,6 +132,21 @@ for (let i = 0; i < this.player.stats.vida; i++) {
       bala.setScale(2.2);
     }
 
+    this.time.addEvent({
+  delay: 1500,
+  callback: () => {
+    if (this.boss1.stats.activo && this.player.active) {
+      this.dispararBoss();
+    }
+  },
+  loop: true
+});
+
+this.physics.add.overlap(this.player, this.balasBoss, (player, bala) => {
+  bala.setActive(false);
+  bala.setVisible(false);
+  this.perderVida();
+}, null, this);
     // Animaciones
     this.anims.create({
       key: "hurts",
@@ -156,7 +176,32 @@ for (let i = 0; i < this.player.stats.vida; i++) {
       repeat: 1
     });
   }
+  dispararBoss() {
+    this.boss1.setTexture("peronLaught");
+    this.boss1.setScale(1.5)
+  const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
+  if (!bala) return;
 
+  bala.setActive(true);
+  bala.setVisible(true);
+  this.physics.world.enable(bala);
+  bala.body.allowGravity = false;
+
+  // Calcula el ángulo entre el jefe y el jugador
+  const angulo = Phaser.Math.Angle.Between(this.boss1.x, this.boss1.y, this.player.x, this.player.y);
+  const velocidad = 500;
+  const velX = Math.cos(angulo) * velocidad;
+  const velY = Math.sin(angulo) * velocidad;
+
+  bala.setVelocity(velX, velY);
+
+    this.time.delayedCall(500, () => {
+    if (this.boss1.stats.activo) {
+      this.boss1.setScale(1)
+      this.boss1.setTexture("peronSerio");
+    }
+  });
+}
   disparar(x, y, velX, velY) {
     const bala = this.balas.get(x, y);
     if (bala) {
@@ -265,5 +310,11 @@ for (let i = 0; i < this.player.stats.vida; i++) {
     this.boss1.setFlipX(false);
   }
 }
+this.balasBoss.children.iterate((bala) => {
+  if (bala.x > 800 || bala.x < 0 || bala.y > 600 || bala.y < 0) {
+    bala.setActive(false);
+    bala.setVisible(false);
+  }
+});
   }
 }
