@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { DropdownItemText } from "react-bootstrap";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -32,12 +33,29 @@ export default class GameScene extends Phaser.Scene {
     // sonidos
     this.load.audio("hurt", "assets/soundtrack/jugador-hurt.mp3")
     this.load.audio("dead", "assets/soundtrack/jugador-dead.mp3")
+    // jefes
+    this.load.image("peronSerio", "assets/sprites/jefe/peronserioSinReco-removebg-preview.png")
+    this.load.image("peronLaught", "assets/sprites/jefe/peronlaughtSinReco-removebg-preview.png")
+    this.load.image("peronScared", "assets/sprites/jefe/peronScaredSinReco-removebg-preview.png")
   }
 
   create() {
     // Fondo
     this.add.image(400, 300, "fondo");
+    // jefe
+    this.boss1 = this.physics.add.sprite(600, 200, "peronSerio")
+    this.boss1.setCollideWorldBounds(true);
+    this.boss1.stats = {
+      vida: 500,
+      velocidad: 100,
+      activo: true,
+      direccion: 1
 
+    }
+    this.boss1.body.allowGravity = false;
+    this.boss1.setImmovable(true);
+    this.boss1.setScale(1.2)
+    this.boss1.setBounce(1, 0);
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
     this.player.stats = {
@@ -85,7 +103,21 @@ for (let i = 0; i < this.player.stats.vida; i++) {
       runChildUpdate: true
     });
 
+    this.balasBoss = this.physics.add.group({
+      defaultKey: "bala",
+      maxSize: 10,
+      runChildUpdate: true
+    });
+
     // Crear balas inactivas al inicio
+
+    for (let i = 0; i < 10; i++) {
+  const bala = this.balasBoss.create(0, 0, "bala");
+  bala.setActive(false);
+  bala.setVisible(false);
+  bala.body.allowGravity = false;
+  bala.setScale(2.2);
+}
     for (let i = 0; i < 10; i++) {
       const bala = this.balas.create(0, 0, "bala");
       bala.setActive(false);
@@ -222,5 +254,16 @@ for (let i = 0; i < this.player.stats.vida; i++) {
     if (this.cursors.up.isDown && this.player.body.touching.down) {
       this.player.setVelocityY(-500);
     }
+        if (this.boss1.stats.activo) {
+  this.boss1.setVelocityX(this.boss1.stats.velocidad * this.boss1.stats.direccion);
+  if (this.boss1.x <= 200) {
+    this.boss1.stats.direccion = 1;
+    this.boss1.setFlipX(true);
+  } 
+  else if (this.boss1.x >= 600) {
+    this.boss1.stats.direccion = -1;
+    this.boss1.setFlipX(false);
+  }
+}
   }
 }
