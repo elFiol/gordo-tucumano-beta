@@ -33,6 +33,7 @@ export default class GameScene extends Phaser.Scene {
     // sonidos
     this.load.audio("hurt", "assets/soundtrack/jugador-hurt.mp3")
     this.load.audio("dead", "assets/soundtrack/jugador-dead.mp3")
+    this.load.audio("peronDisparo", "assets/soundtrack/monstro-pounce-made-with-Voicemod.mp3")
     // jefes
     this.load.image("peronSerio", "assets/sprites/jefe/peronserioSinReco-removebg-preview.png")
     this.load.image("peronLaught", "assets/sprites/jefe/peronlaughtSinReco-removebg-preview.png")
@@ -79,7 +80,8 @@ for (let i = 0; i < this.player.stats.vida; i++) {
   const corazon = this.add.image(xInicial + i * separacion, yInicial, "corazon").setScrollFactor(0).setScale(0.1);
   this.corazones.push(corazon);
 }
-
+    // sonidos
+    this.sonidoPeronDisparo = this.sound.add("peronDisparo")
     this.sonidoHurt = this.sound.add("hurt");
     this.sonidoDead = this.sound.add("dead");
     // Suelo invisible
@@ -179,6 +181,7 @@ this.physics.add.overlap(this.player, this.balasBoss, (player, bala) => {
   dispararBoss() {
     this.boss1.setTexture("peronLaught");
     this.boss1.setScale(1.5)
+    this.sonidoPeronDisparo.play()
   const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
   if (!bala) return;
 
