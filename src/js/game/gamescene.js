@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { DropdownItemText } from "react-bootstrap";
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -34,6 +33,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("hurt", "assets/soundtrack/jugador-hurt.mp3")
     this.load.audio("dead", "assets/soundtrack/jugador-dead.mp3")
     this.load.audio("peronDisparo", "assets/soundtrack/monstro-pounce-made-with-Voicemod.mp3")
+    this.load.audio("peronDead", "assets/soundtrack/the-binding-of-isaac-rebirth-satan-sfx-made-with-Voicemod.mp3")
     // jefes
     this.load.image("peronSerio", "assets/sprites/jefe/peronserioSinReco-removebg-preview.png")
     this.load.image("peronLaught", "assets/sprites/jefe/peronlaughtSinReco-removebg-preview.png")
@@ -43,52 +43,58 @@ export default class GameScene extends Phaser.Scene {
   create() {
     // Fondo
     this.add.image(400, 300, "fondo");
-    // jefe
-    this.boss1 = this.physics.add.sprite(600, 200, "peronSerio")
-    this.boss1.setCollideWorldBounds(true);
-    this.boss1.stats = {
-      vida: 500,
-      velocidad: 300,
-      activo: true,
-      direccion: 1
 
-    }
+    // Jefe
+    this.boss1 = this.physics.add.sprite(600, 200, "peronSerio")
+      .setCollideWorldBounds(true)
+      .setImmovable(true)
+      .setScale(1.2)
+      .setBounce(1, 0);
+    this.boss1.stats = { vida: 500, maxVida: 500, velocidad: 300, activo: true, direccion: 1 };
     this.boss1.body.allowGravity = false;
-    this.boss1.setImmovable(true);
-    this.boss1.setScale(1.2)
-    this.boss1.setBounce(1, 0);
-    this.boss1.setOffset(0, 0)
+    this.boss1.setSize(120, 120).setOffset(10, 10);
+    this.boss1.body.enable = true;
+    this.boss1.lifeBarBg = this.add.rectangle(
+  this.boss1.x, this.boss1.y - 100, // posición sobre el jefe
+  300, 20,                          // ancho y alto
+  0x000000                          // color de fondo (negro)
+).setOrigin(0.5).setScrollFactor(0);
+
+this.boss1.lifeBar = this.add.rectangle(
+  this.boss1.x, this.boss1.y - 100,
+  300, 20,
+  0xff0000                          // color de la vida (rojo)
+).setOrigin(0.5).setScrollFactor(0);
+    this.boss1.body.updateFromGameObject();
+    this.boss1.body.debugShowBody = true;
+    this.boss1.body.debugBodyColor = 0x00ff00;
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.stats = {
-      vida: 3,
-      fuerza: 350,
-      velocidad: 250
-    }
+    this.player.stats = { vida: 3, fuerza: 350, velocidad: 250 };
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
-    this.player.setOffset(0, 0)
-    this.player.body.setSize(8, 8);
-    this.corazones = []
-    
-let xInicial = 20;
-let yInicial = 20;
-let separacion = 40; // separación entre corazones
+    this.player.setSize(8, 8);
 
-for (let i = 0; i < this.player.stats.vida; i++) {
-  const corazon = this.add.image(xInicial + i * separacion, yInicial, "corazon").setScrollFactor(0).setScale(0.1);
-  this.corazones.push(corazon);
-}
-    // sonidos
-    this.sonidoPeronDisparo = this.sound.add("peronDisparo")
+    // Corazones
+    this.corazones = [];
+    let xInicial = 20, yInicial = 20, separacion = 40;
+    for (let i = 0; i < this.player.stats.vida; i++) {
+      const corazon = this.add.image(xInicial + i * separacion, yInicial, "corazon")
+        .setScrollFactor(0)
+        .setScale(0.1);
+      this.corazones.push(corazon);
+    }
+
+    // Sonidos
+    this.sonidoPeronDead = this.sound.add("peronDead");
+    this.sonidoPeronDisparo = this.sound.add("peronDisparo");
     this.sonidoHurt = this.sound.add("hurt");
     this.sonidoDead = this.sound.add("dead");
+
     // Suelo invisible
     const suelo = this.physics.add.staticGroup();
-    const piso = suelo.create(400, 580, null);
-    piso.setSize(800, 40);
-    piso.setVisible(false);
+    const piso = suelo.create(400, 580, null).setSize(800, 40).setVisible(false);
     this.physics.add.collider(this.player, piso);
 
     // Controles
@@ -101,223 +107,165 @@ for (let i = 0; i < this.player.stats.vida; i++) {
       right: Phaser.Input.Keyboard.KeyCodes.D
     });
 
-    // Grupo de balas
-    this.balas = this.physics.add.group({
-      defaultKey: "bala",
-      maxSize: 30,
-      runChildUpdate: true
-    });
-
-    this.balasBoss = this.physics.add.group({
-      defaultKey: "bala",
-      maxSize: 10,
-      runChildUpdate: true
-    });
-
-    // Crear balas inactivas al inicio
-
-    for (let i = 0; i < 10; i++) {
-  const bala = this.balasBoss.create(0, 0, "bala");
-  bala.setActive(false);
-  bala.setVisible(false);
-  bala.body.allowGravity = false;
-  bala.setScale(3);
-  bala.body.setSize(10, 10);
-  bala.body.setOffset(0, 0);
-}
-    for (let i = 0; i < 10; i++) {
+    // Grupo de balas jugador
+    this.balas = this.physics.add.group({ maxSize: 30 });
+    for (let i = 0; i < 30; i++) {
       const bala = this.balas.create(0, 0, "bala");
-      bala.setActive(false);
-      bala.setVisible(false);
+      bala.setActive(false).setVisible(false);
       bala.body.allowGravity = false;
-
       bala.setScale(2.2);
+      bala.body.setSize(20, 20);
     }
 
-    this.time.addEvent({
-  delay: 1500,
-  callback: () => {
-    if (this.boss1.stats.activo && this.player.active) {
-      this.dispararBoss();
+    // Grupo de balas jefe
+    this.balasBoss = this.physics.add.group({ maxSize: 10 });
+    for (let i = 0; i < 10; i++) {
+      const bala = this.balasBoss.create(0, 0, "bala");
+      bala.setActive(false).setVisible(false);
+      bala.body.allowGravity = false;
+      bala.setScale(3);
+      bala.body.setSize(10, 10);
     }
-  },
-  loop: true
-});
 
-this.physics.add.overlap(this.player, this.balasBoss, (player, bala) => {
-  bala.setActive(false);
-  bala.setVisible(false);
-  this.perderVida();
+    // Overlaps
+    this.physics.add.overlap(this.player, this.balasBoss, (player, bala) => {
+      bala.setActive(false).setVisible(false);
+      this.perderVida();
+    });
+
+    this.physics.add.overlap(this.balas, this.boss1, function(bala, boss) {
+      console.log("se esta ejecutando")
+    this.balas.setActive(false).setVisible(false);
+    this.boss1.stats.vida -= 3;
+    console.log(this.boss1.stats.vida)
+    if (this.boss1.stats.vida < 0) this.boss.stats.vida = 0;
+
+    const vidaPercent = Phaser.Math.Clamp(this.boss1.stats.vida / this.boss1.stats.maxVida, 0, 1);
+    this.boss1.lifeBar.width = 300 * vidaPercent;
+    this.boss1.lifeBar.x = this.boss1.x;
+    this.boss1.lifeBarBg.x = this.boss1.x;
+
+    this.boss1.setTint(0xff0000);
+    this.time.delayedCall(200, () => this.boss1.clearTint());
+
+    if (this.boss1.stats.vida <= 0) {
+        this.boss1.stats.activo = false;
+        this.boss1.setVisible(false);
+        this.boss1.lifeBar.setVisible(false);
+        this.boss1.lifeBarBg.setVisible(false);
+        this.sound.play("peronDead");
+    }
 }, null, this);
+
+    this.physics.add.overlap(this.balas, this.boss1, () => console.log("COLISIÓN detectada!"));
     // Animaciones
-    this.anims.create({
-      key: "hurts",
-      frames: this.anims.generateFrameNumbers("jugadorHurts", { start: 0, end: 19 }),
-      frameRate: 35,
-      repeat: 0
-    });
+    this.anims.create({ key: "hurts", frames: this.anims.generateFrameNumbers("jugadorHurts", { start: 0, end: 19 }), frameRate: 35 });
+    this.anims.create({ key: "walk", frames: this.anims.generateFrameNumbers("jugadorRun", { start: 0, end: 9 }), frameRate: 15, repeat: -1 });
+    this.anims.create({ key: "idle", frames: this.anims.generateFrameNumbers("jugador", { start: 0, end: 0 }), frameRate: 10, repeat: -1 });
+    this.anims.create({ key: "jump", frames: this.anims.generateFrameNumbers("jugadorJump", { start: 0, end: 14 }), frameRate: 20, repeat: 1 });
 
-    this.anims.create({
-      key: "walk",
-      frames: this.anims.generateFrameNumbers("jugadorRun", { start: 0, end: 9 }),
-      frameRate: 15,
-      repeat: -1
-    });
-
-    this.anims.create({
-      key: "idle",
-      frames: this.anims.generateFrameNumbers("jugador", { start: 0, end: 0 }),
-      frameRate: 10,
-      repeat: -1
-    });
-
-    this.anims.create({
-      key: "jump",
-      frames: this.anims.generateFrameNumbers("jugadorJump", { start: 0, end: 14 }),
-      frameRate: 20,
-      repeat: 1
+    // Disparo jefe automático
+    this.time.addEvent({
+      delay: 1500,
+      loop: true,
+      callback: () => {
+        if (this.boss1.stats.activo && this.player.active) this.dispararBoss();
+      }
     });
   }
+
   dispararBoss() {
-    this.boss1.setTexture("peronLaught");
-    this.boss1.setScale(1.5)
-    this.sonidoPeronDisparo.play()
-  const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
-  if (!bala) return;
+    this.boss1.setTexture("peronLaught").setScale(1.5);
+    this.sonidoPeronDisparo.play();
 
-  bala.setActive(true);
-  bala.setVisible(true);
-  this.physics.world.enable(bala);
-  bala.body.allowGravity = false;
+    const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
+    if (!bala) return;
+    bala.setActive(true).setVisible(true).setVelocity(0, 0);
 
-  // Calcula el ángulo entre el jefe y el jugador
-  const angulo = Phaser.Math.Angle.Between(this.boss1.x, this.boss1.y, this.player.x, this.player.y);
-  const velocidad = 500;
-  const velX = Math.cos(angulo) * velocidad;
-  const velY = Math.sin(angulo) * velocidad;
-
-  bala.setVelocity(velX, velY);
+    const angulo = Phaser.Math.Angle.Between(this.boss1.x, this.boss1.y, this.player.x, this.player.y);
+    const velocidad = 500;
+    bala.setVelocity(Math.cos(angulo) * velocidad, Math.sin(angulo) * velocidad);
 
     this.time.delayedCall(500, () => {
-    if (this.boss1.stats.activo) {
-      this.boss1.setScale(1)
-      this.boss1.setTexture("peronSerio");
-    }
-  });
-}
+      if (this.boss1.stats.activo) {
+        this.boss1.setTexture("peronSerio").setScale(1);
+      }
+    });
+  }
+
   disparar(x, y, velX, velY) {
     const bala = this.balas.get(x, y);
-    if (bala) {
-      bala.setActive(true);
-      bala.setVisible(true);
-      this.physics.world.enable(bala);
-      bala.body.allowGravity = false;
-      bala.setVelocity(velX, velY);
-    }
+    if (!bala) return;
+    bala.setActive(true).setVisible(true).setVelocity(velX, velY);
   }
+
   esperarSonido(sonido) {
-  return new Promise(resolve => {
-    sonido.once('complete', resolve);
-    sonido.play();
-  });
-}
-  async perderVida() {
-  if (this.player.stats.vida > 0 && !this.player.estaHerido) {
-    this.player.estaHerido = true;
-
-    // Animación de daño
-    this.player.anims.play("hurts", true);
-
-    // Registrar el evento para desbloquear animaciones cuando termine
-    this.player.once('animationcomplete-hurts', () => {
-      this.player.estaHerido = false;
+    return new Promise(resolve => {
+      sonido.once('complete', resolve);
+      sonido.play();
     });
+  }
 
-    // Reducir vida y actualizar corazones
-    this.player.stats.vida--;
-    const corazon = this.corazones[this.player.stats.vida];
-    if (corazon) corazon.setTint(0x808080);
+  async perderVida() {
+    if (this.player.stats.vida > 0 && !this.player.estaHerido) {
+      this.player.estaHerido = true;
+      this.player.anims.play("hurts", true);
+      this.player.once('animationcomplete-hurts', () => this.player.estaHerido = false);
 
-    // Sonido hurt y esperar a que termine
-    await this.esperarSonido(this.sonidoHurt);
+      this.player.stats.vida--;
+      const corazon = this.corazones[this.player.stats.vida];
+      if (corazon) corazon.setTint(0x808080);
 
-    // Si es la última vida
-    if (this.player.stats.vida <= 0) {
-      this.sonidoDead.play();
-      this.player.setActive(false).setVisible(false);
+      await this.esperarSonido(this.sonidoHurt);
+
+      if (this.player.stats.vida <= 0) {
+        this.sonidoDead.play();
+        this.player.setActive(false).setVisible(false);
+      }
     }
   }
-}
 
   update() {
     const speed = this.player.stats.velocidad;
-    if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) {
-  this.perderVida();
-}
+    if (this.boss1 && this.boss1.lifeBar && this.boss1.lifeBarBg) {
+    this.boss1.lifeBar.x = this.boss1.x;
+    this.boss1.lifeBar.y = this.boss1.y - 100;
+    this.boss1.lifeBarBg.x = this.boss1.x;
+    this.boss1.lifeBarBg.y = this.boss1.y - 100;
+  }
+    if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) this.perderVida();
+
     // Destruir balas fuera de pantalla
-    this.balas.children.iterate((bala) => {
-      if (bala.x > 800 || bala.x < 0 || bala.y > 600 || bala.y < 0) {
-        bala.setActive(false);
-        bala.setVisible(false);
-      }
+    this.balas.children.iterate(bala => {
+      if (!bala.active) return;
+      if (bala.x < 0 || bala.x > 800 || bala.y < 0 || bala.y > 600) bala.setActive(false).setVisible(false);
+    });
+
+    this.balasBoss.children.iterate(bala => {
+      if (!bala.active) return;
+      if (bala.x < 0 || bala.x > 800 || bala.y < 0 || bala.y > 600) bala.setActive(false).setVisible(false);
     });
 
     // Disparo con WASD
-    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.up)) {
-      this.disparar(this.player.x, this.player.y, 0, -500);
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.down)) {
-      this.disparar(this.player.x, this.player.y, 0, 500);
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.left)) {
-      this.disparar(this.player.x, this.player.y, -500, 0);
-    }
-    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.right)) {
-      this.disparar(this.player.x, this.player.y, 500, 0);
-    }
-    if (!this.player.estaHerido){
-    // Animación de salto
-    if (!this.player.body.touching.down) {
-      this.player.anims.play("jump", true);
-    }
-    // Movimiento izquierda
-    else if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-speed);
-      this.player.anims.play("walk", true);
-      this.player.setFlipX(true);
-    }
-    // Movimiento derecha
-    else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(speed);
-      this.player.anims.play("walk", true);
-      this.player.setFlipX(false);
-    }
-    // Quieto
-    else {
-      this.player.setVelocityX(0);
-      this.player.anims.play("idle", true);
-    }}
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.up)) this.disparar(this.player.x, this.player.y, 0, -500);
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.down)) this.disparar(this.player.x, this.player.y, 0, 500);
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.left)) this.disparar(this.player.x, this.player.y, -500, 0);
+    if (Phaser.Input.Keyboard.JustDown(this.teclasAtaque.right)) this.disparar(this.player.x, this.player.y, 500, 0);
 
-    // Salto rápido
-    if (this.cursors.up.isDown && this.player.body.touching.down) {
-      this.player.setVelocityY(-500);
+    if (!this.player.estaHerido) {
+      if (!this.player.body.touching.down) this.player.anims.play("jump", true);
+      else if (this.cursors.left.isDown) { this.player.setVelocityX(-speed); this.player.anims.play("walk", true); this.player.setFlipX(true); }
+      else if (this.cursors.right.isDown) { this.player.setVelocityX(speed); this.player.anims.play("walk", true); this.player.setFlipX(false); }
+      else { this.player.setVelocityX(0); this.player.anims.play("idle", true); }
     }
-        if (this.boss1.stats.activo) {
-  this.boss1.setVelocityX(this.boss1.stats.velocidad * this.boss1.stats.direccion);
-  if (this.boss1.x <= 200) {
-    this.boss1.stats.direccion = 1;
-    this.boss1.setFlipX(true);
-  } 
-  else if (this.boss1.x >= 600) {
-    this.boss1.stats.direccion = -1;
-    this.boss1.setFlipX(false);
-  }
-}
-this.balasBoss.children.iterate((bala) => {
-  if (bala.x > 800 || bala.x < 0 || bala.y > 600 || bala.y < 0) {
-    bala.setActive(false);
-    bala.setVisible(false);
-  }
-});
+
+    if (this.cursors.up.isDown && this.player.body.touching.down) this.player.setVelocityY(-500);
+
+    // Movimiento jefe
+    if (this.boss1.stats.activo) {
+      this.boss1.setVelocityX(this.boss1.stats.velocidad * this.boss1.stats.direccion);
+      if (this.boss1.x <= 200) { this.boss1.stats.direccion = 1; this.boss1.setFlipX(true); }
+      else if (this.boss1.x >= 600) { this.boss1.stats.direccion = -1; this.boss1.setFlipX(false); }
+    }
   }
 }
