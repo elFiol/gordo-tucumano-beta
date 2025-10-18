@@ -70,7 +70,7 @@ this.boss1.lifeBar = this.add.rectangle(
     this.boss1.body.debugBodyColor = 0x00ff00;
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.stats = { vida: 3, fuerza: 350, velocidad: 250 };
+    this.player.stats = { vida: 3, fuerza: 3, velocidad: 250 };
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
@@ -134,12 +134,9 @@ this.boss1.lifeBar = this.add.rectangle(
     });
 
     this.physics.add.overlap(this.balas, this.boss1, function(bala, boss) {
-      console.log("se esta ejecutando")
+    if(this.boss1.stats.activo){
     this.balas.setActive(false).setVisible(false);
     this.boss1.stats.vida -= 3;
-    console.log(this.boss1.stats.vida)
-    if (this.boss1.stats.vida < 0) this.boss.stats.vida = 0;
-
     const vidaPercent = Phaser.Math.Clamp(this.boss1.stats.vida / this.boss1.stats.maxVida, 0, 1);
     this.boss1.lifeBar.width = 300 * vidaPercent;
     this.boss1.lifeBar.x = this.boss1.x;
@@ -149,12 +146,26 @@ this.boss1.lifeBar = this.add.rectangle(
     this.time.delayedCall(200, () => this.boss1.clearTint());
 
     if (this.boss1.stats.vida <= 0) {
-        this.boss1.stats.activo = false;
-        this.boss1.setVisible(false);
-        this.boss1.lifeBar.setVisible(false);
-        this.boss1.lifeBarBg.setVisible(false);
-        this.sound.play("peronDead");
-    }
+      this.boss1.lifeBar.setVisible(false);
+      this.boss1.lifeBarBg.setVisible(false);
+      this.boss1.stats.activo = false
+      this.sound.play("peronDead");
+      this.boss1.setTexture("peronScared").setScale(2);
+      this.time.delayedCall(0, () => {
+  this.tweens.add({
+    targets: this.boss1,
+    x: this.boss1.x + 5,   // mueve 5px a la derecha
+    yoyo: true,
+    repeat: 50,             // 50 repeticiones → dura aprox 5 segundos
+    duration: 50,           // velocidad de cada movimiento
+    onYoyo: () => {},       // opcional, se ejecuta cada yoyo
+  });
+});
+
+      this.time.delayedCall(5000, () => {
+        this.boss1.setActive(false).setVisible(false)
+    })
+    }}
 }, null, this);
 
     this.physics.add.overlap(this.balas, this.boss1, () => console.log("COLISIÓN detectada!"));
@@ -175,6 +186,7 @@ this.boss1.lifeBar = this.add.rectangle(
   }
 
   dispararBoss() {
+    if (this.boss1.stats.activo){
     this.boss1.setTexture("peronLaught").setScale(1.5);
     this.sonidoPeronDisparo.play();
 
@@ -191,7 +203,7 @@ this.boss1.lifeBar = this.add.rectangle(
         this.boss1.setTexture("peronSerio").setScale(1);
       }
     });
-  }
+  }}
 
   disparar(x, y, velX, velY) {
     const bala = this.balas.get(x, y);
@@ -266,6 +278,8 @@ this.boss1.lifeBar = this.add.rectangle(
       this.boss1.setVelocityX(this.boss1.stats.velocidad * this.boss1.stats.direccion);
       if (this.boss1.x <= 200) { this.boss1.stats.direccion = 1; this.boss1.setFlipX(true); }
       else if (this.boss1.x >= 600) { this.boss1.stats.direccion = -1; this.boss1.setFlipX(false); }
+    } else {
+      this.boss1.setVelocityX(0, 0)
     }
   }
 }
