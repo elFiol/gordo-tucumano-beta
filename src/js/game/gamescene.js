@@ -50,10 +50,11 @@ export default class GameScene extends Phaser.Scene {
       .setImmovable(true)
       .setScale(1.2)
       .setBounce(1, 0);
-    this.boss1.stats = { vida: 500, maxVida: 500, velocidad: 300, activo: true, direccion: 1 };
+    this.boss1.stats = { vida: 1000, maxVida: 1000, velocidad: 300, activo: true, direccion: 1, patronActual: 1};
     this.boss1.body.allowGravity = false;
     this.boss1.setSize(120, 120).setOffset(10, 10);
     this.boss1.body.enable = true;
+    this.ultimoDisparoBoss = 0
     this.boss1.lifeBarBg = this.add.rectangle(
   this.boss1.x, this.boss1.y - 100, // posición sobre el jefe
   300, 20,                          // ancho y alto
@@ -70,7 +71,7 @@ this.boss1.lifeBar = this.add.rectangle(
     this.boss1.body.debugBodyColor = 0x00ff00;
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.stats = { vida: 3, fuerza: 3, velocidad: 250 };
+    this.player.stats = { vida: 3, fuerza: 3, velocidad: 250, activo: true };
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
@@ -175,17 +176,9 @@ this.boss1.lifeBar = this.add.rectangle(
     this.anims.create({ key: "idle", frames: this.anims.generateFrameNumbers("jugador", { start: 0, end: 0 }), frameRate: 10, repeat: -1 });
     this.anims.create({ key: "jump", frames: this.anims.generateFrameNumbers("jugadorJump", { start: 0, end: 14 }), frameRate: 20, repeat: 1 });
 
-    // Disparo jefe automático
-    this.time.addEvent({
-      delay: 1500,
-      loop: true,
-      callback: () => {
-        if (this.boss1.stats.activo && this.player.active) this.dispararBoss();
-      }
-    });
   }
 
-  dispararBoss() {
+  disparoDirecto() {
     if (this.boss1.stats.activo){
     this.boss1.setTexture("peronLaught").setScale(1.5);
     this.sonidoPeronDisparo.play();
@@ -204,6 +197,44 @@ this.boss1.lifeBar = this.add.rectangle(
       }
     });
   }}
+
+  disparoRafaga() {
+  this.boss1.setTexture("peronLaught").setScale(1.5);
+  this.sonidoPeronDisparo.play();
+
+  for (let i = -1; i <= 1; i++) {
+    const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
+    if (!bala) continue;
+    bala.setActive(true).setVisible(true);
+
+    const anguloBase = Phaser.Math.Angle.Between(this.boss1.x, this.boss1.y, this.player.x, this.player.y);
+    const angulo = anguloBase + Phaser.Math.DegToRad(i * 15); // abre abanico 15° por bala
+    const velocidad = 400;
+    bala.setVelocity(Math.cos(angulo) * velocidad, Math.sin(angulo) * velocidad);
+  }
+
+  this.time.delayedCall(600, () => this.boss1.setTexture("peronSerio").setScale(1));
+}
+
+disparoCircular() {
+  const cantidad = 16;
+  const velocidad = 400;
+  this.boss1.setTexture("peronLaught").setScale(1.5);
+  this.sonidoPeronDisparo.play();
+
+  for (let i = 0; i < cantidad; i++) {
+    const angulo = (i / cantidad) * Math.PI * 2;
+    const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
+    if (!bala) continue;
+    bala.setActive(true).setVisible(true);
+    bala.setVelocity(Math.cos(angulo) * velocidad, Math.sin(angulo) * velocidad);
+  }
+  this.time.delayedCall(500, () => {
+      if (this.boss1.stats.activo) {
+        this.boss1.setTexture("peronSerio").setScale(1);
+      }
+  });
+}
 
   disparar(x, y, velX, velY) {
     const bala = this.balas.get(x, y);
@@ -233,11 +264,12 @@ this.boss1.lifeBar = this.add.rectangle(
       if (this.player.stats.vida <= 0) {
         this.sonidoDead.play();
         this.player.setActive(false).setVisible(false);
+        this.player.stats.activo = false
       }
     }
   }
 
-  update() {
+  update(time) {
     const speed = this.player.stats.velocidad;
     if (this.boss1 && this.boss1.lifeBar && this.boss1.lifeBarBg) {
     this.boss1.lifeBar.x = this.boss1.x;
@@ -245,8 +277,26 @@ this.boss1.lifeBar = this.add.rectangle(
     this.boss1.lifeBarBg.x = this.boss1.x;
     this.boss1.lifeBarBg.y = this.boss1.y - 100;
   }
-    if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) this.perderVida();
 
+   const intervaloDisparo = 1500; // cada 1.5 segundos
+
+  if (this.boss1.stats.activo && this.player.active) {
+    if (time > this.ultimoDisparoBoss + intervaloDisparo) {
+      this.ultimoDisparoBoss = time;
+      switch (this.boss1.stats.patronActual) {
+        case 1: this.disparoDirecto(); break;
+        case 2: this.disparoRafaga(); break;
+        case 3: this.disparoCircular(); break;
+      }
+    }
+  }
+    if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) this.perderVida();
+    // patron de ataque
+    if (this.boss1.stats.vida <= 1000) this.boss1.stats.patronActual = 1;
+    if (this.boss1.stats.vida <= 500) this.boss1.stats.patronActual = 2;
+    if (this.boss1.stats.vida <= 250) this.boss1.stats.patronActual = 3;
+
+    
     // Destruir balas fuera de pantalla
     this.balas.children.iterate(bala => {
       if (!bala.active) return;
