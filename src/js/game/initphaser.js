@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import GameScene from "./gamescene";
 import MenuScene from "./menuscene";
+import VictoryScene from "./victoryScene";
 
 export function initPhaser(containerId) {
   return new Phaser.Game({
@@ -15,6 +16,6 @@ export function initPhaser(containerId) {
       debug: false
     }
   },
-    scene: [MenuScene,GameScene]
+    scene: [MenuScene,GameScene, VictoryScene]
   });
 }

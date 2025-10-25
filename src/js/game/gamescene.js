@@ -165,11 +165,10 @@ this.boss1.lifeBar = this.add.rectangle(
 
       this.time.delayedCall(5000, () => {
         this.boss1.setActive(false).setVisible(false)
+        this.scene.start("VictoryScene");
     })
     }}
 }, null, this);
-
-    this.physics.add.overlap(this.balas, this.boss1, () => console.log("COLISIÓN detectada!"));
     // Animaciones
     this.anims.create({ key: "hurts", frames: this.anims.generateFrameNumbers("jugadorHurts", { start: 0, end: 19 }), frameRate: 35 });
     this.anims.create({ key: "walk", frames: this.anims.generateFrameNumbers("jugadorRun", { start: 0, end: 9 }), frameRate: 15, repeat: -1 });
