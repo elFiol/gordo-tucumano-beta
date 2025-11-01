@@ -5,14 +5,14 @@ export default class VictoryScene extends Phaser.Scene {
 
   preload() {
     // Fondo
-    this.load.image("fondoVictoria", "assets/victory.jpg");
+    this.load.image("fondoVictoria", "/assets/victory.jpg");
 
     // Sprite del jugador bailando
-    this.load.spritesheet("jugadorBaile", "assets/sprites/jugador/isaac.png", {
+    this.load.spritesheet("jugadorBaile", "/assets/sprites/jugador/isaac.png", {
       frameWidth: 56,
       frameHeight: 47
     });
-    this.load.audio("musicaVictoria", "assets/soundtrack/specialist-dance-p4-made-with-Voicemod.mp3");
+    this.load.audio("musicaVictoria", "/assets/soundtrack/specialist-dance-p4-made-with-Voicemod.mp3");
   }
 
   create() {
