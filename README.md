@@ -1,18 +1,42 @@
-# React + Vite
+# juego para la escuela
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Juego desarrollado con **fines educativos** y para **mejorar habilidades de programación y creatividad**.
 
-Currently, two official plugins are available:
+## ⚠️ Advertencia de derechos de autor
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+El sprite y diseño del personaje **no me pertenecen**.  
+Todos los derechos corresponden a sus respectivos autores y se utilizan **únicamente con fines educativos y sin fines de lucro**.  
+Si el autor original desea que se retire su contenido, se hará de inmediato.
 
-## React Compiler
+---
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## 🕹️ Controles (PC)
 
-Note: This will impact Vite dev & build performances.
+| Tecla | Acción |
+|-------|--------|
+| ⬅️ / ➡️ | Mover al jugador a la izquierda o derecha |
+| ⬆️ / Barra espaciadora | Saltar |
+| `W`, `A`, `S`, `D` | Disparar |
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## librerias
+
+- **React**
+- **Phaser 3**
+
+---
+
+## 💻 Requisitos
+
+- [Node.js](https://nodejs.org/) (opcional, si usás un servidor local)
+- Navegador web moderno compatible con ES6
+
+---
+
+## como jugar:
+
+Si lo ejecutás localmente:
+```bash
+npm install
+npm run dev

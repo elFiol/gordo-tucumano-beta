@@ -1,0 +1,22 @@
+import Phaser from "phaser";
+import GameScene from "./gamescene";
+import MenuScene from "./menuscene";
+import VictoryScene from "./victoryScene";
+import LoseScene from "./loseScene";
+
+export function initPhaser(containerId) {
+  return new Phaser.Game({
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    parent: containerId,physics: {
+    default: "arcade",
+    arcade: {
+      debug: true,
+      gravity: { y: 400 },
+      debug: false
+    }
+  },
+    scene: [MenuScene,GameScene, VictoryScene, LoseScene]
+  });
+}
