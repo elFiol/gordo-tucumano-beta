@@ -35,9 +35,9 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("peronDisparo", "assets/soundtrack/monstro-pounce-made-with-Voicemod.mp3")
     this.load.audio("peronDead", "assets/soundtrack/the-binding-of-isaac-rebirth-satan-sfx-made-with-Voicemod.mp3")
     // jefes
-    this.load.image("peronSerio", "assets/sprites/jefe/peronserioSinReco-removebg-preview.png")
-    this.load.image("peronLaught", "assets/sprites/jefe/peronlaughtSinReco-removebg-preview.png")
-    this.load.image("peronScared", "assets/sprites/jefe/peronScaredSinReco-removebg-preview.png")
+    this.load.image("peronSerio", "assets/sprites/jefe/videla2SinReco-removebg-preview.png")
+    this.load.image("peronLaught", "assets/sprites/jefe/videla-disparo-removebg-preview.png")
+    this.load.image("peronScared", "assets/sprites/jefe/videla-dead-removebg-preview.png")
   }
 
   create() {
@@ -71,12 +71,13 @@ this.boss1.lifeBar = this.add.rectangle(
     this.boss1.body.debugBodyColor = 0x00ff00;
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.stats = { vida: 3, fuerza: 3, velocidad: 250, activo: true };
+    this.player.stats = { vida: 3, fuerza: 12, velocidad: 250, activo: true };
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
     this.player.setSize(8, 8);
-
+    this.puedeDisparar = true;
+    this.cadencia = 1000;
     // Corazones
     this.corazones = [];
     let xInicial = 20, yInicial = 20, separacion = 40;
@@ -151,7 +152,7 @@ this.boss1.lifeBar = this.add.rectangle(
       this.boss1.lifeBarBg.setVisible(false);
       this.boss1.stats.activo = false
       this.sound.play("peronDead");
-      this.boss1.setTexture("peronScared").setScale(2);
+      this.boss1.setTexture("peronScared").setScale(1.5);
       this.time.delayedCall(0, () => {
   this.tweens.add({
     targets: this.boss1,
@@ -179,7 +180,7 @@ this.boss1.lifeBar = this.add.rectangle(
 
   disparoDirecto() {
     if (this.boss1.stats.activo){
-    this.boss1.setTexture("peronLaught").setScale(1.5);
+    this.boss1.setTexture("peronLaught").setScale(1.2);
     this.sonidoPeronDisparo.play();
 
     const bala = this.balasBoss.get(this.boss1.x, this.boss1.y);
@@ -192,13 +193,13 @@ this.boss1.lifeBar = this.add.rectangle(
 
     this.time.delayedCall(500, () => {
       if (this.boss1.stats.activo) {
-        this.boss1.setTexture("peronSerio").setScale(1);
+        this.boss1.setTexture("peronSerio").setScale(1.2);
       }
     });
   }}
 
   disparoRafaga() {
-  this.boss1.setTexture("peronLaught").setScale(1.5);
+  this.boss1.setTexture("peronLaught").setScale(1.2);
   this.sonidoPeronDisparo.play();
 
   for (let i = -1; i <= 1; i++) {
@@ -218,7 +219,7 @@ this.boss1.lifeBar = this.add.rectangle(
 disparoCircular() {
   const cantidad = 16;
   const velocidad = 400;
-  this.boss1.setTexture("peronLaught").setScale(1.5);
+  this.boss1.setTexture("peronLaught").setScale(1.2);
   this.sonidoPeronDisparo.play();
 
   for (let i = 0; i < cantidad; i++) {
@@ -230,15 +231,26 @@ disparoCircular() {
   }
   this.time.delayedCall(500, () => {
       if (this.boss1.stats.activo) {
-        this.boss1.setTexture("peronSerio").setScale(1);
+        this.boss1.setTexture("peronSerio").setScale(1.2);
       }
   });
 }
 
   disparar(x, y, velX, velY) {
-    const bala = this.balas.get(x, y);
-    if (!bala) return;
-    bala.setActive(true).setVisible(true).setVelocity(velX, velY);
+     if (!this.puedeDisparar) return; // si está en cooldown, no dispara
+
+  const bala = this.balas.get(x, y);
+  if (!bala) return;
+
+  bala.setActive(true).setVisible(true).setVelocity(velX, velY);
+
+  this.puedeDisparar = false;
+
+  this.time.addEvent({
+    delay: this.cadencia,
+    callback: () => (this.puedeDisparar = true),
+    callbackScope: this,
+  });
   }
 
   esperarSonido(sonido) {
