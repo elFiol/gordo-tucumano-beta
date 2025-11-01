@@ -71,12 +71,13 @@ this.boss1.lifeBar = this.add.rectangle(
     this.boss1.body.debugBodyColor = 0x00ff00;
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.stats = { vida: 3, fuerza: 3, velocidad: 250, activo: true };
+    this.player.stats = { vida: 3, fuerza: 8, velocidad: 250, activo: true };
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
     this.player.setSize(8, 8);
-
+    this.puedeDisparar = true;
+    this.cadencia = 1000;
     // Corazones
     this.corazones = [];
     let xInicial = 20, yInicial = 20, separacion = 40;
@@ -236,9 +237,20 @@ disparoCircular() {
 }
 
   disparar(x, y, velX, velY) {
-    const bala = this.balas.get(x, y);
-    if (!bala) return;
-    bala.setActive(true).setVisible(true).setVelocity(velX, velY);
+     if (!this.puedeDisparar) return; // si está en cooldown, no dispara
+
+  const bala = this.balas.get(x, y);
+  if (!bala) return;
+
+  bala.setActive(true).setVisible(true).setVelocity(velX, velY);
+
+  this.puedeDisparar = false;
+
+  this.time.addEvent({
+    delay: this.cadencia,
+    callback: () => (this.puedeDisparar = true),
+    callbackScope: this,
+  });
   }
 
   esperarSonido(sonido) {
