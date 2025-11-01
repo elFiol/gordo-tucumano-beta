@@ -11,7 +11,6 @@ function App() {
   return (
     <>
     <div className="App">
-      <h1>gordo tucumano + Phaser</h1>
       <div id="game-container"></div>
     </div>
     </>
