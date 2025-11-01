@@ -264,6 +264,9 @@ disparoCircular() {
         this.sonidoDead.play();
         this.player.setActive(false).setVisible(false);
         this.player.stats.activo = false
+        this.time.delayedCall(2000, () => {
+        this.scene.start("LoseScene");
+    })
       }
     }
   }
@@ -292,8 +295,8 @@ disparoCircular() {
     if (Phaser.Input.Keyboard.JustDown(this.teclaHit)) this.perderVida();
     // patron de ataque
     if (this.boss1.stats.vida <= 1000) this.boss1.stats.patronActual = 1;
-    if (this.boss1.stats.vida <= 500) this.boss1.stats.patronActual = 2;
-    if (this.boss1.stats.vida <= 250) this.boss1.stats.patronActual = 3;
+    if (this.boss1.stats.vida <= 600) this.boss1.stats.patronActual = 2;
+    if (this.boss1.stats.vida <= 300) this.boss1.stats.patronActual = 3;
 
     
     // Destruir balas fuera de pantalla

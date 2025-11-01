@@ -38,7 +38,7 @@ export default class MenuScene extends Phaser.Scene {
       this.tweens.add({
         targets: negro,
         alpha: 1,
-        duration: 1000,
+        duration: 500,
         onComplete: () => {
           this.peronRisa.play();
           this.time.delayedCall(5000, () => {
