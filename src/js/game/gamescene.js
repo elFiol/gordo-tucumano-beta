@@ -7,37 +7,37 @@ export default class GameScene extends Phaser.Scene {
 
   preload() {
     // Fondo
-    this.load.image("fondo", "assets/backgroundbattle.jpeg");
+    this.load.image("fondo", "/assets/backgroundbattle.jpeg");
     // Sprites del jugador
-    this.load.spritesheet("jugador", "assets/sprites/jugador/idle_strip1.png", {
+    this.load.spritesheet("jugador", "/assets/sprites/jugador/idle_strip1.png", {
       frameWidth: 144,
       frameHeight: 144
     });
-    this.load.spritesheet("jugadorRun", "assets/sprites/jugador/run_strip10.png", {
+    this.load.spritesheet("jugadorRun", "/assets/sprites/jugador/run_strip10.png", {
       frameWidth: 144,
       frameHeight: 144
     });
-    this.load.spritesheet("jugadorJump", "assets/sprites/jugador/wait_strip15.png", {
+    this.load.spritesheet("jugadorJump", "/assets/sprites/jugador/wait_strip15.png", {
       frameWidth: 144,
       frameHeight: 144
     });
-    this.load.spritesheet("jugadorHurts", "assets/sprites/jugador/ledge_strip20.png" , {
+    this.load.spritesheet("jugadorHurts", "/assets/sprites/jugador/ledge_strip20.png" , {
       frameWidth: 144,
       frameHeight: 144
     })
     // Bala
-    this.load.image("bala", "assets/sprites/jugador/Boucing_tear.png");
+    this.load.image("bala", "/assets/sprites/jugador/Boucing_tear.png");
     // corazon
-    this.load.image("corazon", "assets/sprites/jugador/heart-removebg-preview.png")
+    this.load.image("corazon", "/assets/sprites/jugador/heart-removebg-preview.png")
     // sonidos
-    this.load.audio("hurt", "assets/soundtrack/jugador-hurt.mp3")
-    this.load.audio("dead", "assets/soundtrack/jugador-dead.mp3")
-    this.load.audio("peronDisparo", "assets/soundtrack/monstro-pounce-made-with-Voicemod.mp3")
-    this.load.audio("peronDead", "assets/soundtrack/the-binding-of-isaac-rebirth-satan-sfx-made-with-Voicemod.mp3")
+    this.load.audio("hurt", "/assets/soundtrack/jugador-hurt.mp3")
+    this.load.audio("dead", "/assets/soundtrack/jugador-dead.mp3")
+    this.load.audio("peronDisparo", "/assets/soundtrack/monstro-pounce-made-with-Voicemod.mp3")
+    this.load.audio("peronDead", "/assets/soundtrack/the-binding-of-isaac-rebirth-satan-sfx-made-with-Voicemod.mp3")
     // jefes
-    this.load.image("peronSerio", "assets/sprites/jefe/videla2SinReco-removebg-preview.png")
-    this.load.image("peronLaught", "assets/sprites/jefe/videla-disparo-removebg-preview.png")
-    this.load.image("peronScared", "assets/sprites/jefe/videla-dead-removebg-preview.png")
+    this.load.image("peronSerio", "/assets/sprites/jefe/videla2SinReco-removebg-preview.png")
+    this.load.image("peronLaught", "/assets/sprites/jefe/videla-disparo-removebg-preview.png")
+    this.load.image("peronScared", "/assets/sprites/jefe/videla-dead-removebg-preview.png")
   }
 
   create() {

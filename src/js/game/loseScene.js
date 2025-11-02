@@ -4,7 +4,7 @@ export default class LoseScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("fondoDerrota", "assets/lose.jpg");
+    this.load.image("fondoDerrota", "/assets/lose.jpg");
   }
 
   create() {
