@@ -16,7 +16,10 @@ export default class VictoryScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.image(400, 300, "fondoVictoria");
+    const fondo = this.add.image(0, 0, "fondoVictoria").setOrigin(0);
+    const { width, height } = this.sys.game.canvas;
+    fondo.displayWidth = width;
+    fondo.displayHeight = height;
     this.musicaVictoria = this.sound.add("musicaVictoria", { loop: true, volume: 0.6 })
     this.musicaVictoria.play()
 
@@ -32,15 +35,33 @@ export default class VictoryScene extends Phaser.Scene {
     jugador.play("baile");
 
     // Texto de victoria
-    this.add.text(400, 100, "¡VICTORIA!", {
+    this.add.text(width / 2, height / 4, "¡VICTORIA!", {
       fontFamily: "Arial Black",
       fontSize: "64px",
       color: "#FFD700",
       stroke: "#000",
       strokeThickness: 8
     }).setOrigin(0.5);
+    
+    this.add.text(width / 2, height - 190, "Gracias por jugar", {
+      fontFamily: "Georgia, Times, serif",
+      fontStyle: "italic",
+      fontSize: "34px",
+      color: "#e9c111ff",
+      stroke: "#000",
+      strokeThickness: 8
+    }).setOrigin(0.5);
 
-    this.add.text(400, 520, "Presiona ENTER para volver al menú", {
+    this.add.text(width / 2, height - 150, "Atentamente 5to 2da", {
+      fontFamily: "Georgia, Times, serif",
+      fontStyle: "italic",
+      fontSize: "34px",
+      color: "#e9c111ff",
+      stroke: "#000",
+      strokeThickness: 8
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height - 80, "Presiona ENTER para volver al menú", {
       fontFamily: "Arial",
       fontSize: "24px",
       color: "#FFFFFF"
