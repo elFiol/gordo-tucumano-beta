@@ -71,7 +71,7 @@ this.boss1.lifeBar = this.add.rectangle(
     this.boss1.body.debugBodyColor = 0x00ff00;
     // Jugador
     this.player = this.physics.add.sprite(100, 450, "jugador");
-    this.player.stats = { vida: 3, fuerza: 12, velocidad: 250, activo: true };
+    this.player.stats = { vida: 3, fuerza: 15, velocidad: 250, activo: true };
     this.player.body.setGravityY(600);
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0.2);
