@@ -22,6 +22,24 @@ export default class LoseScene extends Phaser.Scene {
       strokeThickness: 8
     }).setOrigin(0.5);
 
+    this.add.text(width / 2, height - 190, "Gracias por jugar", {
+      fontFamily: "Georgia, Times, serif",
+      fontStyle: "italic",
+      fontSize: "34px",
+      color: "#e9c111ff",
+      stroke: "#000",
+      strokeThickness: 8
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height - 150, "Atentamente 5to 2da", {
+      fontFamily: "Georgia, Times, serif",
+      fontStyle: "italic",
+      fontSize: "34px",
+      color: "#e9c111ff",
+      stroke: "#000",
+      strokeThickness: 8
+    }).setOrigin(0.5);
+
     this.add.text(width / 2, height - 80, "Presiona ENTER para volver a intentar", {
       fontFamily: "Georgia, Times, serif",
       fontStyle: "italic",
