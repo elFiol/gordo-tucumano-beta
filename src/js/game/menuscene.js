@@ -14,7 +14,7 @@ export default class MenuScene extends Phaser.Scene {
 
   create() {
     const fondo = this.add.image(400, 300, "fondoMenu").setOrigin(0.5);
-    const titulo = this.add.text(400, 150, "16 de junio de 1955", {
+    const titulo = this.add.text(400, 150, "La dictadura militar", {
       fontFamily: "Arial Black",
       fontSize: "48px",
       color: "#FFD700",
@@ -27,6 +27,13 @@ export default class MenuScene extends Phaser.Scene {
       fontSize: "34px",
       color: "#000000"
     }).setOrigin(0.5);
+
+    const tutorial = this.add.text(400, 300, "usa las flechas para moverte y W para disparar", {
+      fontFamily: "Arial Black",
+      fontSize: "24px",
+      color: "#10455ec9"
+    }).setOrigin(0.5);
+
     this.musica = this.sound.add("musicaMenu", { loop: true, volume: 0.5 });
     this.peronRisa = this.sound.add("peronRisa", { volume: 0.5 });
     this.musica.play();
@@ -34,7 +41,6 @@ export default class MenuScene extends Phaser.Scene {
     // Evento: presionar ENTER
     this.input.keyboard.once("keydown-ENTER", () => {
       this.musica.stop();
-      console.log(window.location.href); // URL completa actual
       const negro = this.add.rectangle(400, 300, 800, 600, 0x000000).setAlpha(0);
       this.tweens.add({
         targets: negro,
@@ -50,6 +56,7 @@ export default class MenuScene extends Phaser.Scene {
       fondo.destroy();
       titulo.destroy();
       texto.destroy();
+      tutorial.destroy();
     });
   }
 }
