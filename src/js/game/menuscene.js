@@ -34,6 +34,7 @@ export default class MenuScene extends Phaser.Scene {
     // Evento: presionar ENTER
     this.input.keyboard.once("keydown-ENTER", () => {
       this.musica.stop();
+      console.log(window.location.href); // URL completa actual
       const negro = this.add.rectangle(400, 300, 800, 600, 0x000000).setAlpha(0);
       this.tweens.add({
         targets: negro,
